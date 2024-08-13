@@ -36,9 +36,43 @@
       #invalidLines button {
         margin-top: 10px;
       }
-
       #lojaKeySelect {
         margin-left: 10px;
+      }
+      #filterLojaKey,
+      #filterGTIN,
+      #filterProduto,
+      #filterSemana,
+      #filterQntVendida,
+      #filterValorVendido,
+      #filterDataInicial,
+      #filterDataFinal {
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 5px;
+      }
+
+      .loja,
+      .dataInicial,
+      .dataFinal {
+        width: 50px;
+        align-items: center;
+      }
+
+      #pageInfo {
+        margin: 0 10px;
+      }
+
+      #prevPage,
+      #nextPage {
+        padding: 5px 10px;
+        margin: 0 2px;
+      }
+
+      #prevPage:disabled,
+      #nextPage:disabled {
+        background-color: #f2f2f2;
+        color: #666;
       }
     </style>
   </head>
@@ -52,16 +86,17 @@
     <table id="productTable">
       <thead>
         <tr>
-          <th>Loja Key</th>
-          <th>GTIN</th>
-          <th>Produto</th>
-          <th>Semana</th>
-          <th>Quantidade Vendida</th>
-          <th>Valor Vendido</th>
-          <th>Data Inicial</th>
-          <th>Data Final</th>
+          <th class="loja"><input type="text" id="filterLojaKey" /><br />Loja</th>
+          <th class="gtin"><input type="text" id="filterGTIN" /><br />GTIN</th>
+          <th class="produto"><input type="text" id="filterProduto" /><br />Produto</th>
+          <th class="semana"><input type="text" id="filterSemana" /><br />Semana</th>
+          <th class="qntVendida"><input type="text" id="filterQntVendida" /><br />Quantidade Vendida</th>
+          <th class="valorVendido"><input type="text" id="filterValorVendido" /><br />Valor Vendido</th>
+          <th class="dataInicial"><input type="text" id="filterDataInicial" /><br />Inicial</th>
+          <th class="dataFinal"><input type="text" id="filterDataFinal" /><br />Final</th>
         </tr>
       </thead>
+
       <tbody></tbody>
     </table>
     <div id="valorTotal"></div>
@@ -124,7 +159,6 @@
                 totalValorVendido += parseFloat(valorVendido);
               } else {
                 if (parseFloat(valorVendido) === 0) {
-                  console.log(valorVendido);
                   invalidLines.push({
                     line: line,
                     reason: "O valor vendido não é maior que 0",
@@ -185,6 +219,87 @@
                 ": " +
                 valorTotalLoja.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
             }
+          });
+
+          // Add event listener to the filter inputs
+          var filterLojaKey = document.getElementById("filterLojaKey");
+          filterLojaKey.addEventListener("input", function () {
+            var filterValue = filterLojaKey.value.toLowerCase();
+            var filteredProducts = products.filter(function (product) {
+              return product.lojaKey.toLowerCase().includes(filterValue);
+            });
+            renderTable(filteredProducts);
+            updatePagination(filteredProducts.length);
+          });
+
+          var filterGTIN = document.getElementById("filterGTIN");
+          filterGTIN.addEventListener("input", function () {
+            var filterValue = filterGTIN.value.toLowerCase();
+            var filteredProducts = products.filter(function (product) {
+              return product.gtin.toLowerCase().includes(filterValue);
+            });
+            renderTable(filteredProducts);
+            updatePagination(filteredProducts.length);
+          });
+
+          var filterProduto = document.getElementById("filterProduto");
+          filterProduto.addEventListener("input", function () {
+            var filterValue = filterProduto.value.toLowerCase();
+            var filteredProducts = products.filter(function (product) {
+              return product.produto.toLowerCase().includes(filterValue);
+            });
+            renderTable(filteredProducts);
+            updatePagination(filteredProducts.length);
+          });
+
+          var filterSemana = document.getElementById("filterSemana");
+          filterSemana.addEventListener("input", function () {
+            var filterValue = filterSemana.value.toLowerCase();
+            var filteredProducts = products.filter(function (product) {
+              return product.semana.toLowerCase().includes(filterValue);
+            });
+            renderTable(filteredProducts);
+            updatePagination(filteredProducts.length);
+          });
+
+          var filterQntVendida = document.getElementById("filterQntVendida");
+          filterQntVendida.addEventListener("input", function () {
+            var filterValue = filterQntVendida.value.toLowerCase();
+            var filteredProducts = products.filter(function (product) {
+              return product.qntVendida.toLowerCase().includes(filterValue);
+            });
+            renderTable(filteredProducts);
+            updatePagination(filteredProducts.length);
+          });
+
+          var filterValorVendido = document.getElementById("filterValorVendido");
+          filterValorVendido.addEventListener("input", function () {
+            var filterValue = filterValorVendido.value.toLowerCase();
+            var filteredProducts = products.filter(function (product) {
+              return product.valorVendido.toLowerCase().includes(filterValue);
+            });
+            renderTable(filteredProducts);
+            updatePagination(filteredProducts.length);
+          });
+
+          var filterDataInicial = document.getElementById("filterDataInicial");
+          filterDataInicial.addEventListener("input", function () {
+            var filterValue = filterDataInicial.value.toLowerCase();
+            var filteredProducts = products.filter(function (product) {
+              return product.dataInicial.toLowerCase().includes(filterValue);
+            });
+            renderTable(filteredProducts);
+            updatePagination(filteredProducts.length);
+          });
+
+          var filterDataFinal = document.getElementById("filterDataFinal");
+          filterDataFinal.addEventListener("input", function () {
+            var filterValue = filterDataFinal.value.toLowerCase();
+            var filteredProducts = products.filter(function (product) {
+              return product.dataFinal.toLowerCase().includes(filterValue);
+            });
+            renderTable(filteredProducts);
+            updatePagination(filteredProducts.length);
           });
 
           renderTable(products);
