@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>File Input Example</title>
+    <style>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .pagination {
+        margin-top: 10px;
+      }
+      .pagination button {
+        padding: 5px 10px;
+        margin: 0 2px;
+      }
+      #valorTotal {
+        margin-top: 10px;
+      }
+      #productTable {
+        margin-top: 10px;
+      }
+      #invalidLines {
+        margin-top: 10px;
+        color: red;
+      }
+      #invalidLines button {
+        margin-top: 10px;
+      }
+
+      #lojaKeySelect {
+        margin-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <input type="file" accept=".txt" id="fileInput" />
+    <label for="lojaKeySelect">Selecione a loja:</label>
+    <select id="lojaKeySelect">
+      <option value="todas">Todas</option>
+    </select>
+
+    <table id="productTable">
+      <thead>
+        <tr>
+          <th>Loja Key</th>
+          <th>GTIN</th>
+          <th>Produto</th>
+          <th>Semana</th>
+          <th>Quantidade Vendida</th>
+          <th>Valor Vendido</th>
+          <th>Data Inicial</th>
+          <th>Data Final</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div id="valorTotal"></div>
+
+    <div class="pagination">
+      <button id="prevPage">Anterior</button>
+      <span id="pageInfo"></span>
+      <button id="nextPage">Próxima</button>
+    </div>
+    <div id="invalidLines"></div>
+    <script>
+      document.getElementById("fileInput").addEventListener("change", function (e) {
+        var file = e.target.files[0];
+        var reader = new FileReader();
+        var lojas = {}; // Object to store the data for each lojaKey
+        var totalValorVendido = 0; // Variable to store the sum of valorVendido
+        var lineCount = 0;
+        var products = []; // Array to store all products
+        var currentPage = 1;
+        var itemsPerPage = 10;
+        var invalidLines = []; // Array to store invalid lines
+
+        reader.onload = function (e) {
+          var contents = e.target.result;
+          var lines = contents.split("\n");
+
+          lines.forEach(function (line) {
+            var lojaKey = line.substring(0, 10).trim().replace(/^0+/, "");
+            var gtin = line.substring(10, 24).trim();
+            var produto = line.substring(24, 94).trim();
+            var semana = line.substring(94, 100).trim();
+            var qntVendida = line.substring(100, 109).trim();
+            var valorVendido = line.substring(109, 120).trim();
+            var dataInicial = line.substring(121, 123).trim();
+            var dataFinal = line.substring(123, 125).trim();
+            lineCount++;
+            // Convert valorVendido to a number with two decimal places
+            valorVendido = parseFloat(valorVendido / 100).toFixed(2);
+            qntVendida = parseFloat(qntVendida / 1000).toFixed(3);
+
+            var jsonObject = {
+              lojaKey: lojaKey,
+              gtin: gtin,
+              produto: produto,
+              semana: semana,
+              qntVendida: qntVendida,
+              valorVendido: valorVendido,
+              dataInicial: dataInicial,
+              dataFinal: dataFinal,
+            };
+
+            // Check if jsonObject has a value and if valorVendido is greater than 0
+            if (line.trim() !== "") {
+              if (Object.values(jsonObject).every((value) => value !== "") && parseFloat(valorVendido) > 0) {
+                if (!lojas[lojaKey]) {
+                  lojas[lojaKey] = [];
+                }
+                lojas[lojaKey].push(jsonObject);
+                products.push(jsonObject);
+                totalValorVendido += parseFloat(valorVendido);
+              } else {
+                if (parseFloat(valorVendido) === 0) {
+                  console.log(valorVendido);
+                  invalidLines.push({
+                    line: line,
+                    reason: "O valor vendido não é maior que 0",
+                  });
+                } else {
+                  invalidLines.push({
+                    line: line,
+                    reason: "Campo inválido",
+                  });
+                }
+              }
+            }
+          });
+
+          // Populate the select with lojaKey options
+          var lojaKeySelect = document.getElementById("lojaKeySelect");
+          Object.keys(lojas).forEach(function (lojaKey) {
+            var option = document.createElement("option");
+            option.value = lojaKey;
+            option.text = lojaKey;
+            lojaKeySelect.appendChild(option);
+          });
+
+          // Update the valorTotalElement with the totalValorVendido
+          var valorTotalElement = document.getElementById("valorTotal");
+          valorTotalElement.textContent =
+            "Valor Total: " + totalValorVendido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+          // Display invalid lines
+          var invalidLinesElement = document.getElementById("invalidLines");
+          var invalidLinesButton = document.createElement("button");
+          invalidLinesButton.textContent = "Veja as linhas inválidas";
+          invalidLinesButton.addEventListener("click", function () {
+            invalidLinesElement.textContent = "Linhas Inválidas: \n";
+            invalidLines.forEach(function (invalidLine) {
+              var lineElement = document.createElement("div");
+              lineElement.textContent = invalidLine.line + " Motivo: " + invalidLine.reason;
+              invalidLinesElement.appendChild(lineElement);
+            });
+          });
+          invalidLinesElement.appendChild(invalidLinesButton);
+
+          // Add event listener to the select
+          lojaKeySelect.addEventListener("change", function () {
+            var selectedLojaKey = lojaKeySelect.value;
+            currentPage = 1;
+            if (selectedLojaKey === "todas") {
+              renderTable(products);
+              valorTotalElement.textContent =
+                "Valor Total: " + totalValorVendido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+            } else {
+              var filteredProducts = lojas[selectedLojaKey] || [];
+              renderTable(filteredProducts);
+              var valorTotalLoja = filteredProducts.reduce((sum, product) => sum + parseFloat(product.valorVendido), 0);
+              valorTotalElement.textContent =
+                "Valor Total da Loja " +
+                selectedLojaKey +
+                ": " +
+                valorTotalLoja.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+            }
+          });
+
+          renderTable(products);
+          updatePagination(products.length);
+
+          console.log(lineCount); // Display the number of lines
+          console.log(lojas); // Display the object containing data for each lojaKey
+          console.log("Total Valor Vendido:", totalValorVendido.toFixed(2)); // Display the sum of valorVendido
+        };
+
+        reader.readAsText(file);
+
+        function renderTable(data) {
+          var tableBody = document.getElementById("productTable").getElementsByTagName("tbody")[0];
+          tableBody.innerHTML = "";
+          var start = (currentPage - 1) * itemsPerPage;
+          var end = start + itemsPerPage;
+          var paginatedItems = data.slice(start, end);
+
+          paginatedItems.forEach(function (item) {
+            var row = tableBody.insertRow();
+            Object.values(item).forEach(function (value) {
+              var cell = row.insertCell();
+              cell.textContent = value;
+            });
+          });
+
+          updatePagination(data.length);
+        }
+
+        function updatePagination(totalItems) {
+          var totalPages = Math.ceil(totalItems / itemsPerPage);
+          document.getElementById("pageInfo").textContent = "Página " + currentPage + " de " + totalPages;
+          document.getElementById("prevPage").disabled = currentPage === 1;
+          document.getElementById("nextPage").disabled = currentPage === totalPages;
+        }
+
+        document.getElementById("prevPage").addEventListener("click", function () {
+          if (currentPage > 1) {
+            currentPage--;
+            var selectedLojaKey = document.getElementById("lojaKeySelect").value;
+            var data = selectedLojaKey === "todas" ? products : lojas[selectedLojaKey] || [];
+            renderTable(data);
+          }
+        });
+
+        document.getElementById("nextPage").addEventListener("click", function () {
+          var selectedLojaKey = document.getElementById("lojaKeySelect").value;
+          var data = selectedLojaKey === "todas" ? products : lojas[selectedLojaKey] || [];
+          if (currentPage * itemsPerPage < data.length) {
+            currentPage++;
+            renderTable(data);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
