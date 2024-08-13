@@ -65,7 +65,7 @@
       }
 
       /* Estilo das linhas inválidas */
-      #invalidLines {
+      #invalidLines span {
         margin-top: var(--margin-medium);
         color: red;
       }
@@ -275,9 +275,13 @@
           invalidLinesButton.textContent = "Veja as linhas inválidas";
           invalidLinesButton.addEventListener("click", function () {
             invalidLinesElement.textContent = "Linhas Inválidas: \n";
-            invalidLines.forEach(function (invalidLine) {
+            invalidLines.forEach(function (invalidLine, index) {
               var lineElement = document.createElement("div");
-              lineElement.textContent = invalidLine.line + " Motivo: " + invalidLine.reason;
+              var reasonElement = document.createElement("span");
+              reasonElement.textContent = "Motivo: " + invalidLine.reason;
+              lineElement.textContent = invalidLine.line;
+              lineElement.appendChild(reasonElement);
+              lineElement.style.backgroundColor = index % 2 === 0 ? "#f2f2f2" : "#ffffff"; // Set background color based on index
               invalidLinesElement.appendChild(lineElement);
             });
           });
