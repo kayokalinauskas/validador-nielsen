@@ -251,9 +251,11 @@
               }
             }
           });
-
-          // Populate the select with lojaKey options
           var lojaKeySelect = document.getElementById("lojaKeySelect");
+          // Remove all options except the first one
+          while (lojaKeySelect.options.length > 1) {
+            lojaKeySelect.remove(1);
+          }
           Object.keys(lojas).forEach(function (lojaKey) {
             var option = document.createElement("option");
             option.value = lojaKey;
