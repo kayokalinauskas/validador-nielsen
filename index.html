@@ -3,42 +3,95 @@
   <head>
     <title>File Input Example</title>
     <style>
-      table {
-        width: 100%;
-        border-collapse: collapse;
+      /* Variáveis CSS */
+      :root {
+      --border-color: black;
+      --background-color: #f2f2f2;
+      --disabled-background-color: #f2f2f2;
+      --disabled-color: #666;
+      --padding-small: 5px;
+      --padding-medium: 8px;
+      --margin-small: 2px;
+      --margin-medium: 10px;
+      --primary-color: #d2d8df;
+      --secondary-color: #6c757d;
+      --light-color: #fdfdfd;
+      --dark-color: #2b2b2b;
       }
+
+      /* Estilo da tabela */
+      table {
+      width: 100%;
+      border-collapse: collapse;
+      }
+
       th,
       td {
-        border: 1px solid black;
-        padding: 8px;
-        text-align: left;
+      border: 1px solid var(--border-color);
+      padding: var(--padding-medium);
+      text-align: left;
       }
+
       th {
-        background-color: #f2f2f2;
+      background-color: var(--primary-color);
+      color: var(--dark-color);
       }
+
+      /* Estilo da paginação */
       .pagination {
-        margin-top: 10px;
+      margin-top: var(--margin-medium);
+      display: flex;
+      justify-content: center;
+      align-items: center;
       }
+
       .pagination button {
-        padding: 5px 10px;
-        margin: 0 2px;
+      padding: var(--padding-small) var(--padding-medium);
+      margin: 0 var(--margin-small);
+      background-color: var(--secondary-color);
+      color: var(--light-color);
+      border: none;
+      cursor: pointer;
       }
+
+      /* Estilo do valor total */
       #valorTotal {
-        margin-top: 10px;
+      margin-top: var(--margin-medium);
+      font-weight: bold;
       }
+
+      /* Estilo da tabela de produtos */
       #productTable {
-        margin-top: 10px;
+      margin-top: var(--margin-medium);
       }
+
+      /* Estilo das linhas inválidas */
       #invalidLines {
-        margin-top: 10px;
-        color: red;
+      margin-top: var(--margin-medium);
+      color: red;
       }
+
       #invalidLines button {
-        margin-top: 10px;
+      margin-top: var(--margin-medium);
+      background-color: var(--primary-color);
+      color: var(--dark-color);
+      border: none;
+      cursor: pointer;
+      padding: var(--padding-small) var(--padding-medium);
+      border-radius: 4px;
       }
+
+      #invalidLines button:hover {
+      background-color: var(--secondary-color);
+      color: var(--light-color);
+      }
+
+      /* Estilo do seletor de loja */
       #lojaKeySelect {
-        margin-left: 10px;
+      margin-left: var(--margin-medium);
       }
+
+      /* Estilo dos filtros */
       #filterLojaKey,
       #filterGTIN,
       #filterProduto,
@@ -47,33 +100,59 @@
       #filterValorVendido,
       #filterDataInicial,
       #filterDataFinal {
-        width: 100%;
-        box-sizing: border-box;
-        margin-bottom: 5px;
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: var(--padding-small);
+      padding: var(--padding-small);
+      border: 1px solid var(--secondary-color);
+      border-radius: 4px;
       }
 
+      /* Estilo das colunas específicas */
       .loja,
       .dataInicial,
       .dataFinal {
-        width: 50px;
-        align-items: center;
+      width: 50px;
+      align-items: center;
       }
 
+      /* Estilo da informação de página */
       #pageInfo {
-        margin: 0 10px;
+      margin: 0 var(--margin-medium);
       }
 
+      /* Estilo dos botões de navegação */
       #prevPage,
       #nextPage {
-        padding: 5px 10px;
-        margin: 0 2px;
+      padding: var(--padding-small) var(--padding-medium);
+      margin: 0 var(--margin-small);
+      background-color: var(--secondary-color);
+      color: var(--light-color);
+      border: none;
+      cursor: pointer;
       }
 
       #prevPage:disabled,
       #nextPage:disabled {
-        background-color: #f2f2f2;
-        color: #666;
+      background-color: var(--disabled-background-color);
+      color: var(--disabled-color);
+      cursor: not-allowed;
       }
+
+      /* Estilos responsivos */
+      @media (max-width: 600px) {
+      th,
+      td {
+        padding: var(--padding-small);
+      }
+
+      .pagination button,
+      #prevPage,
+      #nextPage {
+        padding: var(--padding-small);
+      }
+      }
+    </style>
     </style>
   </head>
   <body>
@@ -200,6 +279,12 @@
             });
           });
           invalidLinesElement.appendChild(invalidLinesButton);
+
+          // Reset invalid lines if a new file is uploaded
+          document.getElementById("fileInput").addEventListener("change", function () {
+            invalidLines = [];
+            invalidLinesElement.textContent = "";
+          });
 
           // Add event listener to the select
           lojaKeySelect.addEventListener("change", function () {
