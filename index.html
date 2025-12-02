@@ -1,458 +1,562 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
   <head>
-    <title>Validador Nielsen</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Validador Nielsen Pro</title>
     <style>
-      /* Variáveis CSS */
       :root {
-        --border-color: black;
-        --background-color: #f2f2f2;
-        --disabled-background-color: #f2f2f2;
-        --disabled-color: #666;
-        --padding-small: 5px;
-        --padding-medium: 8px;
-        --margin-small: 2px;
-        --margin-medium: 10px;
-        --primary-color: #d2d8df;
+        --primary-color: #0056b3;
         --secondary-color: #6c757d;
-        --light-color: #fdfdfd;
-        --dark-color: #2b2b2b;
+        --accent-color: #e9ecef;
+        --bg-color: #f8f9fa;
+        --text-color: #343a40;
+        --border-radius: 8px;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       }
 
-      /* Estilo da tabela */
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1400px;
+        background: white;
+        padding: 20px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+      }
+
+      /* Header e Inputs */
+      .controls {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        align-items: center;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      label {
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      select,
+      input[type="file"] {
+        padding: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 1rem;
+      }
+
+      .summary-card {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 10px 20px;
+        border-radius: var(--border-radius);
+        font-weight: bold;
+        margin-left: auto;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      }
+
+      /* Tabela */
+      .table-wrapper {
+        overflow-x: auto;
+        max-height: 600px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+      }
+
       table {
         width: 100%;
         border-collapse: collapse;
+        min-width: 1000px;
       }
 
-      th,
-      td {
-        border: 1px solid var(--border-color);
-        padding: var(--padding-medium);
+      thead th {
+        position: sticky;
+        top: 0;
+        background-color: var(--accent-color);
+        color: var(--text-color);
+        z-index: 10;
+        padding: 10px;
+        border-bottom: 2px solid #dee2e6;
         text-align: left;
+        cursor: pointer; /* Indica que é clicável */
+        user-select: none;
       }
 
-      th {
-        background-color: var(--primary-color);
-        color: var(--dark-color);
+      thead th:hover {
+        background-color: #dbe2e8;
       }
 
-      /* Estilo da paginação */
+      /* Ícone de ordenação */
+      .sort-icon {
+        margin-left: 5px;
+        font-size: 0.8rem;
+        color: #666;
+      }
+
+      th input {
+        width: 90%;
+        margin-top: 5px;
+        padding: 4px;
+        border: 1px solid #ced4da;
+        border-radius: 3px;
+        font-size: 0.85rem;
+        font-weight: normal;
+        cursor: text; /* Cursor de texto no input */
+      }
+
+      tbody td {
+        padding: 10px;
+        border-bottom: 1px solid #dee2e6;
+        font-size: 0.95rem;
+      }
+
+      tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+      }
+
+      tbody tr:hover {
+        background-color: #e2e6ea;
+      }
+
+      /* Coluna Loja destacada */
+      td.col-loja {
+          font-weight: bold;
+          color: var(--primary-color);
+      }
+
+      /* Paginação */
       .pagination {
-        margin-top: var(--margin-medium);
         display: flex;
         justify-content: center;
         align-items: center;
+        margin-top: 20px;
+        gap: 15px;
       }
 
-      .pagination button {
-        padding: var(--padding-small) var(--padding-medium);
-        margin: 0 var(--margin-small);
-        background-color: var(--secondary-color);
-        color: var(--light-color);
-        border: none;
-        cursor: pointer;
-      }
-
-      /* Estilo do valor total */
-      #valorTotal {
-        margin-top: var(--margin-medium);
-      }
-
-      /* Estilo da tabela de produtos */
-      #productTable {
-        margin-top: var(--margin-medium);
-      }
-
-      /* Estilo das linhas inválidas */
-      #invalidLines span {
-        margin-top: var(--margin-medium);
-        color: red;
-      }
-
-      #invalidLines button {
-        margin-top: var(--margin-medium);
+      button {
+        padding: 8px 16px;
         background-color: var(--primary-color);
-        color: var(--dark-color);
+        color: white;
         border: none;
+        border-radius: 4px;
         cursor: pointer;
-        padding: var(--padding-small) var(--padding-medium);
-        border-radius: 4px;
+        transition: background 0.2s;
       }
 
-      /* Estilo dos filtros */
-      #filterLojaKey,
-      #filterGTIN,
-      #filterProduto,
-      #filterSemana,
-      #filterQntVendida,
-      #filterValorVendido,
-      #filterDataInicial,
-      #filterDataFinal {
-        width: 100%;
-        box-sizing: border-box;
-        margin-bottom: var(--padding-small);
-        padding: var(--padding-small);
-        border: 1px solid var(--secondary-color);
-        border-radius: 4px;
+      button:hover {
+        background-color: #004494;
       }
 
-      /* Estilo das colunas específicas */
-      .loja,
-      .dataInicial,
-      .dataFinal {
-        width: 30px;
-        align-items: center;
-      }
-
-      /* Estilo da informação de página */
-      #pageInfo {
-        margin: 0 var(--margin-medium);
-      }
-
-      /* Estilo dos botões de navegação */
-      #prevPage,
-      #nextPage {
-        padding: var(--padding-small) var(--padding-medium);
-        margin: 0 var(--margin-small);
+      button:disabled {
         background-color: var(--secondary-color);
-        color: var(--light-color);
-        border: none;
-        cursor: pointer;
-      }
-
-      #prevPage:disabled,
-      #nextPage:disabled {
-        background-color: var(--disabled-background-color);
-        color: var(--disabled-color);
         cursor: not-allowed;
-      }
-      .loja-select {
-        margin-top: var(--margin-medium);
-        margin-left: var(--margin-medium);
+        opacity: 0.6;
       }
 
-      .custom-file-input {
-        margin-top: var(--margin-medium);
-        margin-left: var(--margin-medium);
-        padding: var(--padding-small);
-        border: 1px solid var(--secondary-color);
-        border-radius: 4px;
-        cursor: pointer;
+      #invalidLinesArea {
+        margin-top: 20px;
+        border-top: 2px solid #dc3545;
+        padding-top: 10px;
+        display: none;
       }
 
-      @media (max-width: 600px) {
-        th,
-        td {
-          padding: var(--padding-small);
-        }
-
-        .pagination button,
-        #prevPage,
-        #nextPage {
-          padding: var(--padding-small);
-        }
+      .error-row {
+        font-family: monospace;
+        background: #fff5f5;
+        padding: 5px;
+        border-bottom: 1px solid #fed7d7;
+        color: #c53030;
+      }
+      
+      .loading {
+        text-align: center;
+        font-style: italic;
+        color: var(--secondary-color);
+        margin: 20px 0;
+        display: none;
       }
     </style>
   </head>
   <body>
-    <input class="custom-file-input" type="file" accept=".txt" id="fileInput" />
-    <label class="loja-select" for="lojaKeySelect">Selecione a loja:</label>
-    <select id="lojaKeySelect">
-      <option value="todas">Todas</option>
-    </select>
+    <div class="container">
+      <div class="controls">
+        <div class="control-group">
+            <label for="fileInput">Arquivo Nielsen (.txt)</label>
+            <input type="file" accept=".txt" id="fileInput" />
+        </div>
+        
+        <div class="control-group">
+            <label for="lojaKeySelect">Filtrar por Loja</label>
+            <select id="lojaKeySelect" disabled>
+            <option value="todas">Todas as Lojas</option>
+            </select>
+        </div>
 
-    <table id="productTable">
-      <thead>
-        <tr>
-          <th class="loja"><input type="text" id="filterLojaKey" /><br />Loja</th>
-          <th class="gtin"><input type="text" id="filterGTIN" /><br />GTIN</th>
-          <th class="produto"><input type="text" id="filterProduto" /><br />Produto</th>
-          <th class="semana"><input type="text" id="filterSemana" /><br />Semana</th>
-          <th class="qntVendida"><input type="text" id="filterQntVendida" /><br />Quantidade Vendida</th>
-          <th class="valorVendido"><input type="text" id="filterValorVendido" /><br />Valor Vendido</th>
-          <th class="dataInicial"><input type="text" id="filterDataInicial" /><br />Inicial</th>
-          <th class="dataFinal"><input type="text" id="filterDataFinal" /><br />Final</th>
-        </tr>
-      </thead>
+        <div class="summary-card" id="valorTotal">
+          Total: R$ 0,00
+        </div>
+      </div>
 
-      <tbody></tbody>
-    </table>
-    <div id="valorTotal"></div>
+      <div id="loadingIndicator" class="loading">Processando arquivo...</div>
 
-    <div class="pagination">
-      <button id="prevPage">Anterior</button>
-      <span id="pageInfo"></span>
-      <button id="nextPage">Próxima</button>
+      <div class="table-wrapper">
+        <table id="productTable">
+          <thead>
+            <tr>
+              <th onclick="handleSort('lojaKey')">Loja <span class="sort-icon">⇅</span><br /><input type="text" data-filter="lojaKey" onclick="event.stopPropagation()" placeholder="Busca..." /></th>
+              <th onclick="handleSort('gtin')">GTIN <span class="sort-icon">⇅</span><br /><input type="text" data-filter="gtin" onclick="event.stopPropagation()" placeholder="Busca..." /></th>
+              <th onclick="handleSort('produto')">Produto <span class="sort-icon">⇅</span><br /><input type="text" data-filter="produto" onclick="event.stopPropagation()" placeholder="Busca..." /></th>
+              <th onclick="handleSort('semana')">Semana <span class="sort-icon">⇅</span><br /><input type="text" data-filter="semana" onclick="event.stopPropagation()" placeholder="Busca..." /></th>
+              <th onclick="handleSort('qntVendida')">Qtd. <span class="sort-icon">⇅</span><br /><input type="text" data-filter="qntVendida" onclick="event.stopPropagation()" placeholder="Busca..." /></th>
+              <th onclick="handleSort('valorVendidoNum')">Valor <span class="sort-icon">⇅</span><br /><input type="text" data-filter="valorVendido" onclick="event.stopPropagation()" placeholder="Busca..." /></th>
+              <th onclick="handleSort('dataInicial')">Ini <span class="sort-icon">⇅</span><br /><input type="text" data-filter="dataInicial" onclick="event.stopPropagation()" placeholder="Busca..." /></th>
+              <th onclick="handleSort('dataFinal')">Fim <span class="sort-icon">⇅</span><br /><input type="text" data-filter="dataFinal" onclick="event.stopPropagation()" placeholder="Busca..." /></th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <button id="prevPage" disabled>Anterior</button>
+        <span id="pageInfo">Página 0 de 0</span>
+        <button id="nextPage" disabled>Próxima</button>
+      </div>
+
+      <div id="invalidButtonsArea" style="margin-top: 20px; display: none;">
+          <button id="toggleInvalid" style="background-color: #dc3545;">Ver Linhas Inválidas</button>
+      </div>
+      <div id="invalidLinesArea"></div>
     </div>
-    <div id="invalidLines"></div>
+
     <script>
-      document.getElementById("fileInput").addEventListener("change", function (e) {
-        var file = e.target.files[0];
-        var reader = new FileReader();
-        var lojas = {}; // Object to store the data for each lojaKey
-        var totalValorVendido = 0; // Variable to store the sum of valorVendido
-        var lineCount = 0;
-        var products = []; // Array to store all products
-        var currentPage = 1;
-        var itemsPerPage = 10;
-        var invalidLines = []; // Array to store invalid lines
+      const state = {
+        allData: [],
+        filteredData: [],
+        invalidData: [],
+        currentPage: 1,
+        itemsPerPage: 20,
+        filters: {
+            lojaKey: "", gtin: "", produto: "", semana: "", 
+            qntVendida: "", valorVendido: "", dataInicial: "", dataFinal: ""
+        },
+        selectedStore: "todas",
+        sortCol: null,     // Coluna atual de ordenação
+        sortAsc: true      // Direção (Ascendente ou Descendente)
+      };
 
-        reader.onload = function (e) {
-          var contents = e.target.result;
-          var lines = contents.split("\n");
+      const dom = {
+        fileInput: document.getElementById("fileInput"),
+        lojaSelect: document.getElementById("lojaKeySelect"),
+        tbody: document.querySelector("#productTable tbody"),
+        valorTotal: document.getElementById("valorTotal"),
+        prevBtn: document.getElementById("prevPage"),
+        nextBtn: document.getElementById("nextPage"),
+        pageInfo: document.getElementById("pageInfo"),
+        loading: document.getElementById("loadingIndicator"),
+        invalidBtnArea: document.getElementById("invalidButtonsArea"),
+        invalidArea: document.getElementById("invalidLinesArea"),
+        toggleInvalidBtn: document.getElementById("toggleInvalid"),
+        filterInputs: document.querySelectorAll("input[data-filter]")
+      };
 
-          lines.forEach(function (line) {
-            var lojaKey = line.substring(0, 10).trim().replace(/^0+/, "");
-            var gtin = line.substring(10, 24).trim();
-            var produto = line.substring(24, 94).trim();
-            var semana = line.substring(94, 100).trim();
-            var qntVendida = line.substring(100, 109).trim();
-            var valorVendido = line.substring(109, 120).trim();
-            var dataInicial = line.substring(121, 123).trim();
-            var dataFinal = line.substring(123, 125).trim();
-            lineCount++;
-            // Convert valorVendido to a number with two decimal places
-            valorVendido = parseFloat(valorVendido / 100).toFixed(2);
-            qntVendida = parseFloat(qntVendida / 1000).toFixed(3);
+      const currencyFormatter = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      });
 
-            var jsonObject = {
-              lojaKey: lojaKey,
-              gtin: gtin,
-              produto: produto,
-              semana: semana,
-              qntVendida: qntVendida,
-              valorVendido: valorVendido,
-              dataInicial: dataInicial,
-              dataFinal: dataFinal,
+      // Event Listeners
+      dom.fileInput.addEventListener("change", handleFileUpload);
+      
+      dom.lojaSelect.addEventListener("change", (e) => {
+        state.selectedStore = e.target.value;
+        state.currentPage = 1;
+        aplicarFiltros();
+      });
+
+      dom.prevBtn.addEventListener("click", () => {
+        if (state.currentPage > 1) {
+          state.currentPage--;
+          renderTable();
+        }
+      });
+
+      dom.nextBtn.addEventListener("click", () => {
+        const maxPage = Math.ceil(state.filteredData.length / state.itemsPerPage);
+        if (state.currentPage < maxPage) {
+          state.currentPage++;
+          renderTable();
+        }
+      });
+
+      dom.filterInputs.forEach(input => {
+          input.addEventListener("input", (e) => {
+              const field = e.target.dataset.filter;
+              state.filters[field] = e.target.value.toLowerCase();
+              state.currentPage = 1;
+              aplicarFiltros();
+          });
+      });
+
+      dom.toggleInvalidBtn.addEventListener("click", () => {
+          const isHidden = dom.invalidArea.style.display === "none";
+          dom.invalidArea.style.display = isHidden ? "block" : "none";
+          dom.toggleInvalidBtn.textContent = isHidden ? "Ocultar Linhas Inválidas" : "Ver Linhas Inválidas";
+      });
+
+      // --- Funções de Processamento ---
+
+      function handleFileUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        dom.loading.style.display = "block";
+        
+        setTimeout(() => {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                processFileContent(event.target.result);
+                dom.loading.style.display = "none";
+            };
+            reader.readAsText(file);
+        }, 100);
+      }
+
+      function processFileContent(content) {
+        const lines = content.split("\n");
+        state.allData = [];
+        state.invalidData = [];
+        const lojasSet = new Set();
+
+        lines.forEach((line) => {
+            if (!line.trim()) return;
+
+            const rawLoja = line.substring(0, 10).trim().replace(/^0+/, "");
+            const rawGtin = line.substring(10, 24).trim();
+            const rawProd = line.substring(24, 94).trim();
+            const rawSemana = line.substring(94, 100).trim();
+            const rawQtd = line.substring(100, 109).trim();
+            const rawVal = line.substring(109, 120).trim();
+            const rawDataIni = line.substring(121, 123).trim();
+            const rawDataFim = line.substring(123, 125).trim();
+
+            const valFloat = parseFloat(rawVal) / 100;
+            const qtdFloat = parseFloat(rawQtd) / 1000;
+
+            const item = {
+                lineOriginal: line,
+                lojaKey: rawLoja,
+                gtin: rawGtin,
+                produto: rawProd,
+                semana: rawSemana,
+                qntVendida: qtdFloat.toFixed(3),
+                valorVendido: valFloat.toFixed(2),
+                valorVendidoNum: valFloat, 
+                dataInicial: rawDataIni,
+                dataFinal: rawDataFim
             };
 
-            // Check if jsonObject has a value and if valorVendido is greater than 0
-            if (line.trim() !== "") {
-              if (Object.values(jsonObject).every((value) => value !== "") && parseFloat(valorVendido) > 0) {
-                if (!lojas[lojaKey]) {
-                  lojas[lojaKey] = [];
-                }
-                lojas[lojaKey].push(jsonObject);
-                products.push(jsonObject);
-                totalValorVendido += parseFloat(valorVendido);
-              } else {
-                if (parseFloat(valorVendido) === 0) {
-                  invalidLines.push({
-                    line: line,
-                    reason: "O valor vendido não é maior que 0",
-                  });
-                } else {
-                  invalidLines.push({
-                    line: line,
-                    reason: "Campo inválido",
-                  });
-                }
-              }
-            }
-          });
-          var lojaKeySelect = document.getElementById("lojaKeySelect");
-          // Remove all options except the first one
-          while (lojaKeySelect.options.length > 1) {
-            lojaKeySelect.remove(1);
-          }
-          Object.keys(lojas).forEach(function (lojaKey) {
-            var option = document.createElement("option");
-            option.value = lojaKey;
-            option.text = lojaKey;
-            lojaKeySelect.appendChild(option);
-          });
+            const isValid = 
+                item.lojaKey && 
+                item.gtin && 
+                item.produto && 
+                item.valorVendidoNum > 0;
 
-          // Update the valorTotalElement with the totalValorVendido
-          var valorTotalElement = document.getElementById("valorTotal");
-          valorTotalElement.innerHTML =
-            "Valor Total: " +
-            "<strong>" +
-            totalValorVendido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) +
-            "</strong>";
-
-          // Display invalid lines
-          var invalidLinesElement = document.getElementById("invalidLines");
-          var invalidLinesButton = document.createElement("button");
-          invalidLinesButton.textContent = "Veja as linhas inválidas";
-          invalidLinesButton.addEventListener("click", function () {
-            invalidLinesElement.textContent = "Linhas Inválidas: \n";
-            invalidLines.forEach(function (invalidLine, index) {
-              var lineElement = document.createElement("div");
-              var reasonElement = document.createElement("span");
-              reasonElement.textContent = "Motivo: " + invalidLine.reason;
-              lineElement.textContent = invalidLine.line;
-              lineElement.appendChild(reasonElement);
-              lineElement.style.backgroundColor = index % 2 === 0 ? "#f2f2f2" : "#ffffff"; // Set background color based on index
-              invalidLinesElement.appendChild(lineElement);
-            });
-          });
-          invalidLinesElement.appendChild(invalidLinesButton);
-
-          // Reset invalid lines if a new file is uploaded
-          document.getElementById("fileInput").addEventListener("change", function () {
-            invalidLines = [];
-            invalidLinesElement.textContent = "";
-          });
-
-          // Add event listener to the select
-          lojaKeySelect.addEventListener("change", function () {
-            var selectedLojaKey = lojaKeySelect.value;
-            currentPage = 1;
-            if (selectedLojaKey === "todas") {
-              renderTable(products);
-              valorTotalElement.innerHTML =
-                "Valor Total: " +
-                "<strong>" +
-                totalValorVendido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) +
-                "</strong>";
+            if (isValid) {
+                state.allData.push(item);
+                lojasSet.add(item.lojaKey);
             } else {
-              var filteredProducts = lojas[selectedLojaKey] || [];
-              renderTable(filteredProducts);
-              var valorTotalLoja = filteredProducts.reduce((sum, product) => sum + parseFloat(product.valorVendido), 0);
-              valorTotalElement.innerHTML =
-                "Valor Total da Loja " +
-                selectedLojaKey +
-                ":<strong> " +
-                valorTotalLoja.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) +
-                "</strong>";
+                let reason = "Campo vazio ou formato incorreto";
+                if (item.valorVendidoNum <= 0) reason = "Valor vendido deve ser maior que 0";
+                state.invalidData.push({ line: line, reason: reason });
             }
-          });
-
-          // Add event listener to the filter inputs
-          var filterLojaKey = document.getElementById("filterLojaKey");
-          filterLojaKey.addEventListener("input", function () {
-            var filterValue = filterLojaKey.value.toLowerCase();
-            var filteredProducts = products.filter(function (product) {
-              return product.lojaKey.toLowerCase().includes(filterValue);
-            });
-            renderTable(filteredProducts);
-            updatePagination(filteredProducts.length);
-          });
-
-          var filterGTIN = document.getElementById("filterGTIN");
-          filterGTIN.addEventListener("input", function () {
-            var filterValue = filterGTIN.value.toLowerCase();
-            var filteredProducts = products.filter(function (product) {
-              return product.gtin.toLowerCase().includes(filterValue);
-            });
-            renderTable(filteredProducts);
-            updatePagination(filteredProducts.length);
-          });
-
-          var filterProduto = document.getElementById("filterProduto");
-          filterProduto.addEventListener("input", function () {
-            var filterValue = filterProduto.value.toLowerCase();
-            var filteredProducts = products.filter(function (product) {
-              return product.produto.toLowerCase().includes(filterValue);
-            });
-            renderTable(filteredProducts);
-            updatePagination(filteredProducts.length);
-          });
-
-          var filterSemana = document.getElementById("filterSemana");
-          filterSemana.addEventListener("input", function () {
-            var filterValue = filterSemana.value.toLowerCase();
-            var filteredProducts = products.filter(function (product) {
-              return product.semana.toLowerCase().includes(filterValue);
-            });
-            renderTable(filteredProducts);
-            updatePagination(filteredProducts.length);
-          });
-
-          var filterQntVendida = document.getElementById("filterQntVendida");
-          filterQntVendida.addEventListener("input", function () {
-            var filterValue = filterQntVendida.value.toLowerCase();
-            var filteredProducts = products.filter(function (product) {
-              return product.qntVendida.toLowerCase().includes(filterValue);
-            });
-            renderTable(filteredProducts);
-            updatePagination(filteredProducts.length);
-          });
-
-          var filterValorVendido = document.getElementById("filterValorVendido");
-          filterValorVendido.addEventListener("input", function () {
-            var filterValue = filterValorVendido.value.toLowerCase();
-            var filteredProducts = products.filter(function (product) {
-              return product.valorVendido.toLowerCase().includes(filterValue);
-            });
-            renderTable(filteredProducts);
-            updatePagination(filteredProducts.length);
-          });
-
-          var filterDataInicial = document.getElementById("filterDataInicial");
-          filterDataInicial.addEventListener("input", function () {
-            var filterValue = filterDataInicial.value.toLowerCase();
-            var filteredProducts = products.filter(function (product) {
-              return product.dataInicial.toLowerCase().includes(filterValue);
-            });
-            renderTable(filteredProducts);
-            updatePagination(filteredProducts.length);
-          });
-
-          var filterDataFinal = document.getElementById("filterDataFinal");
-          filterDataFinal.addEventListener("input", function () {
-            var filterValue = filterDataFinal.value.toLowerCase();
-            var filteredProducts = products.filter(function (product) {
-              return product.dataFinal.toLowerCase().includes(filterValue);
-            });
-            renderTable(filteredProducts);
-            updatePagination(filteredProducts.length);
-          });
-
-          renderTable(products);
-          updatePagination(products.length);
-
-          console.log(lineCount); // Display the number of lines
-          console.log(lojas); // Display the object containing data for each lojaKey
-          console.log("Total Valor Vendido:", totalValorVendido.toFixed(2)); // Display the sum of valorVendido
-        };
-
-        reader.readAsText(file);
-
-        function renderTable(data) {
-          var tableBody = document.getElementById("productTable").getElementsByTagName("tbody")[0];
-          tableBody.innerHTML = "";
-          var start = (currentPage - 1) * itemsPerPage;
-          var end = start + itemsPerPage;
-          var paginatedItems = data.slice(start, end);
-
-          paginatedItems.forEach(function (item) {
-            var row = tableBody.insertRow();
-            Object.values(item).forEach(function (value) {
-              var cell = row.insertCell();
-              cell.textContent = value;
-            });
-          });
-
-          updatePagination(data.length);
-        }
-
-        function updatePagination(totalItems) {
-          var totalPages = Math.ceil(totalItems / itemsPerPage);
-          document.getElementById("pageInfo").textContent = "Página " + currentPage + " de " + totalPages;
-          document.getElementById("prevPage").disabled = currentPage === 1;
-          document.getElementById("nextPage").disabled = currentPage === totalPages;
-        }
-
-        document.getElementById("prevPage").addEventListener("click", function () {
-          if (currentPage > 1) {
-            currentPage--;
-            var selectedLojaKey = document.getElementById("lojaKeySelect").value;
-            var data = selectedLojaKey === "todas" ? products : lojas[selectedLojaKey] || [];
-            renderTable(data);
-          }
         });
 
-        document.getElementById("nextPage").addEventListener("click", function () {
-          var selectedLojaKey = document.getElementById("lojaKeySelect").value;
-          var data = selectedLojaKey === "todas" ? products : lojas[selectedLojaKey] || [];
-          if (currentPage * itemsPerPage < data.length) {
-            currentPage++;
-            renderTable(data);
+        populateStoreSelect(lojasSet);
+        renderInvalidLines();
+        
+        state.selectedStore = "todas";
+        // Reset sort
+        state.sortCol = null;
+        state.sortAsc = true;
+        
+        aplicarFiltros();
+      }
+
+      function populateStoreSelect(lojasSet) {
+          dom.lojaSelect.innerHTML = '<option value="todas">Todas as Lojas</option>';
+          Array.from(lojasSet).sort((a, b) => parseInt(a) - parseInt(b)).forEach(loja => {
+              const option = document.createElement("option");
+              option.value = loja;
+              option.textContent = `Loja ${loja}`;
+              dom.lojaSelect.appendChild(option);
+          });
+          dom.lojaSelect.disabled = false;
+      }
+
+      // --- Funções de Ordenação ---
+
+      function handleSort(column) {
+          if (state.sortCol === column) {
+              state.sortAsc = !state.sortAsc; // Inverte direção
+          } else {
+              state.sortCol = column;
+              state.sortAsc = true; // Novo filtro começa Ascendente
           }
-        });
-      });
+          
+          // Atualiza visual dos ícones (opcional, mas bom pra UX)
+          document.querySelectorAll('.sort-icon').forEach(el => el.textContent = "⇅");
+          const activeHeader = document.querySelector(`th[onclick="handleSort('${column}')"] .sort-icon`);
+          if(activeHeader) activeHeader.textContent = state.sortAsc ? "▲" : "▼";
+
+          sortData();
+          renderTable();
+      }
+
+      function sortData() {
+          if (!state.sortCol) return;
+
+          state.filteredData.sort((a, b) => {
+              let valA = a[state.sortCol];
+              let valB = b[state.sortCol];
+
+              // Tratamento para números
+              if (state.sortCol === 'valorVendidoNum' || state.sortCol === 'qntVendida' || state.sortCol === 'lojaKey') {
+                  valA = parseFloat(valA);
+                  valB = parseFloat(valB);
+              } else {
+                  // Tratamento para texto (Case insensitive)
+                  valA = valA.toString().toLowerCase();
+                  valB = valB.toString().toLowerCase();
+              }
+
+              if (valA < valB) return state.sortAsc ? -1 : 1;
+              if (valA > valB) return state.sortAsc ? 1 : -1;
+              return 0;
+          });
+      }
+
+      // --- Funções de Filtro e Renderização ---
+
+      function aplicarFiltros() {
+          let result = state.allData;
+          
+          if (state.selectedStore !== "todas") {
+              result = result.filter(item => item.lojaKey === state.selectedStore);
+          }
+
+          Object.keys(state.filters).forEach(key => {
+              const term = state.filters[key];
+              if (term) {
+                  result = result.filter(item => 
+                      item[key].toString().toLowerCase().includes(term)
+                  );
+              }
+          });
+
+          state.filteredData = result;
+          
+          // Reaplica ordenação se houver alguma ativa
+          if(state.sortCol) sortData();
+
+          updateTotal();
+          renderTable();
+      }
+
+      function updateTotal() {
+          const total = state.filteredData.reduce((acc, item) => acc + item.valorVendidoNum, 0);
+          const label = state.selectedStore === "todas" ? "Total Geral" : `Total Loja ${state.selectedStore}`;
+          dom.valorTotal.innerHTML = `${label}: <br>${currencyFormatter.format(total)}`;
+      }
+
+      function renderTable() {
+          dom.tbody.innerHTML = "";
+          
+          const start = (state.currentPage - 1) * state.itemsPerPage;
+          const end = start + state.itemsPerPage;
+          const pageItems = state.filteredData.slice(start, end);
+
+          const fragment = document.createDocumentFragment();
+
+          if (pageItems.length === 0) {
+              const row = document.createElement("tr");
+              const cell = document.createElement("td");
+              cell.colSpan = 8;
+              cell.textContent = "Nenhum dado encontrado com os filtros atuais.";
+              cell.style.textAlign = "center";
+              row.appendChild(cell);
+              fragment.appendChild(row);
+          } else {
+              pageItems.forEach(item => {
+                  const row = document.createElement("tr");
+                  
+                  const columns = ['lojaKey', 'gtin', 'produto', 'semana', 'qntVendida', 'valorVendido', 'dataInicial', 'dataFinal'];
+                  
+                  columns.forEach(col => {
+                      const cell = document.createElement("td");
+                      if (col === 'valorVendido') {
+                          cell.textContent = currencyFormatter.format(item.valorVendidoNum);
+                      } else {
+                          cell.textContent = item[col];
+                      }
+                      
+                      if (col === 'lojaKey') cell.classList.add('col-loja');
+                      
+                      row.appendChild(cell);
+                  });
+                  fragment.appendChild(row);
+              });
+          }
+
+          dom.tbody.appendChild(fragment);
+          updatePaginationUI();
+      }
+
+      function updatePaginationUI() {
+          const totalItems = state.filteredData.length;
+          const totalPages = Math.ceil(totalItems / state.itemsPerPage) || 1;
+          
+          dom.pageInfo.textContent = `Página ${state.currentPage} de ${totalPages} (${totalItems} registros)`;
+          
+          dom.prevBtn.disabled = state.currentPage === 1;
+          dom.nextBtn.disabled = state.currentPage === totalPages || totalItems === 0;
+      }
+
+      function renderInvalidLines() {
+          dom.invalidArea.innerHTML = "";
+          if (state.invalidData.length > 0) {
+              dom.invalidBtnArea.style.display = "block";
+              state.invalidData.forEach(err => {
+                  const div = document.createElement("div");
+                  div.className = "error-row";
+                  div.innerHTML = `<strong>Motivo:</strong> ${err.reason} <br> <code>${err.lineOriginal}</code>`;
+                  dom.invalidArea.appendChild(div);
+              });
+          } else {
+              dom.invalidBtnArea.style.display = "none";
+          }
+      }
     </script>
   </body>
 </html>
