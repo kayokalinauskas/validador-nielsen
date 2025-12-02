@@ -98,7 +98,7 @@
         padding: 10px;
         border-bottom: 2px solid #dee2e6;
         text-align: left;
-        cursor: pointer; /* Indica que é clicável */
+        cursor: pointer;
         user-select: none;
       }
 
@@ -106,7 +106,6 @@
         background-color: #dbe2e8;
       }
 
-      /* Ícone de ordenação */
       .sort-icon {
         margin-left: 5px;
         font-size: 0.8rem;
@@ -121,7 +120,7 @@
         border-radius: 3px;
         font-size: 0.85rem;
         font-weight: normal;
-        cursor: text; /* Cursor de texto no input */
+        cursor: text;
       }
 
       tbody td {
@@ -138,7 +137,6 @@
         background-color: #e2e6ea;
       }
 
-      /* Coluna Loja destacada */
       td.col-loja {
           font-weight: bold;
           color: var(--primary-color);
@@ -173,6 +171,7 @@
         opacity: 0.6;
       }
 
+      /* Área de Erros */
       #invalidLinesArea {
         margin-top: 20px;
         border-top: 2px solid #dc3545;
@@ -183,9 +182,11 @@
       .error-row {
         font-family: monospace;
         background: #fff5f5;
-        padding: 5px;
+        padding: 10px;
         border-bottom: 1px solid #fed7d7;
         color: #c53030;
+        word-break: break-all; /* Garante que linhas longas quebrem */
+        font-size: 0.85rem;
       }
       
       .loading {
@@ -262,8 +263,8 @@
             qntVendida: "", valorVendido: "", dataInicial: "", dataFinal: ""
         },
         selectedStore: "todas",
-        sortCol: null,     // Coluna atual de ordenação
-        sortAsc: true      // Direção (Ascendente ou Descendente)
+        sortCol: null,
+        sortAsc: true
       };
 
       const dom = {
@@ -319,10 +320,16 @@
           });
       });
 
+      // Correção do Botão de Linhas Inválidas
       dom.toggleInvalidBtn.addEventListener("click", () => {
-          const isHidden = dom.invalidArea.style.display === "none";
-          dom.invalidArea.style.display = isHidden ? "block" : "none";
-          dom.toggleInvalidBtn.textContent = isHidden ? "Ocultar Linhas Inválidas" : "Ver Linhas Inválidas";
+          // Verifica se está visível checando o estilo "block"
+          if (dom.invalidArea.style.display === "block") {
+              dom.invalidArea.style.display = "none";
+              dom.toggleInvalidBtn.textContent = "Ver Linhas Inválidas";
+          } else {
+              dom.invalidArea.style.display = "block";
+              dom.toggleInvalidBtn.textContent = "Ocultar Linhas Inválidas";
+          }
       });
 
       // --- Funções de Processamento ---
@@ -389,7 +396,9 @@
             } else {
                 let reason = "Campo vazio ou formato incorreto";
                 if (item.valorVendidoNum <= 0) reason = "Valor vendido deve ser maior que 0";
-                state.invalidData.push({ line: line, reason: reason });
+                
+                // Correção: Agora usamos lineOriginal aqui também para padronizar
+                state.invalidData.push({ lineOriginal: line, reason: reason });
             }
         });
 
@@ -397,7 +406,6 @@
         renderInvalidLines();
         
         state.selectedStore = "todas";
-        // Reset sort
         state.sortCol = null;
         state.sortAsc = true;
         
@@ -419,13 +427,12 @@
 
       function handleSort(column) {
           if (state.sortCol === column) {
-              state.sortAsc = !state.sortAsc; // Inverte direção
+              state.sortAsc = !state.sortAsc;
           } else {
               state.sortCol = column;
-              state.sortAsc = true; // Novo filtro começa Ascendente
+              state.sortAsc = true;
           }
           
-          // Atualiza visual dos ícones (opcional, mas bom pra UX)
           document.querySelectorAll('.sort-icon').forEach(el => el.textContent = "⇅");
           const activeHeader = document.querySelector(`th[onclick="handleSort('${column}')"] .sort-icon`);
           if(activeHeader) activeHeader.textContent = state.sortAsc ? "▲" : "▼";
@@ -441,12 +448,10 @@
               let valA = a[state.sortCol];
               let valB = b[state.sortCol];
 
-              // Tratamento para números
               if (state.sortCol === 'valorVendidoNum' || state.sortCol === 'qntVendida' || state.sortCol === 'lojaKey') {
                   valA = parseFloat(valA);
                   valB = parseFloat(valB);
               } else {
-                  // Tratamento para texto (Case insensitive)
                   valA = valA.toString().toLowerCase();
                   valB = valB.toString().toLowerCase();
               }
@@ -477,7 +482,6 @@
 
           state.filteredData = result;
           
-          // Reaplica ordenação se houver alguma ativa
           if(state.sortCol) sortData();
 
           updateTotal();
@@ -550,6 +554,7 @@
               state.invalidData.forEach(err => {
                   const div = document.createElement("div");
                   div.className = "error-row";
+                  // Correção: Agora usa err.lineOriginal que está corretamente populado
                   div.innerHTML = `<strong>Motivo:</strong> ${err.reason} <br> <code>${err.lineOriginal}</code>`;
                   dom.invalidArea.appendChild(div);
               });
