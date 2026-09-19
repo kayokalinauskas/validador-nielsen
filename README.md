@@ -7,6 +7,9 @@ Aplicação web para importar, validar e explorar arquivos de vendas Nielsen em 
 [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript)
 [![Sem dependências](https://img.shields.io/badge/depend%C3%AAncias-zero-2ea44f)](#tecnologias-e-decisões-técnicas)
 
+
+**[Acessar aplicação](https://kayokalinauskas.github.io/validador-nielsen/)**
+
 ## Sobre o projeto
 
 O Validador Nielsen transforma um arquivo de largura fixa em uma interface de análise simples e responsiva. A solução foi construída para reduzir o trabalho manual de conferência: ela separa registros válidos e inválidos, converte valores numéricos, calcula o total vendido e oferece recursos de busca e organização dos dados.
